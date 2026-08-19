@@ -15,13 +15,6 @@ from .const import (
     REG_MODE,
     REG_ON_OFF,
     REG_T_WATER_TANK,
-    REG_UNIT_STATUS,
-    REG_T_OUTDOOR,
-    REG_T_WATER_OUT_PE,
-    REG_T_WATER_IN_PE,
-    REG_T_TANK_CTRL,
-    REG_SETTING_FREQUENCY,
-    REG_RUNNING_FREQUENCY,
     REG_POWER_LIMIT,
     ERROR_BITS,
     STATUS_BITS,
@@ -92,20 +85,9 @@ class AlpicAirHeatpumpCoordinator(DataUpdateCoordinator):
         kw = {self._device_kwarg: self._slave}
 
         try:
-            # Word 2-44: mode, setpoints, limits, on/off (control block)
-            control_block = await self._client.read_holding_registers(
-                address=2, count=43, **kw
-            )
-            # Word 117-137: live status, temperatures, thermostat state
-            status_block = await self._client.read_holding_registers(
-                address=117, count=21, **kw
-            )
-            # Word 142-143: setting/running frequency
-            freq_block = await self._client.read_holding_registers(
-                address=142, count=2, **kw
-            )
-            # Bit 64-199: errors and status flags (split to avoid the 100-116,
-            # 144-167(partial) reserved gaps causing a whole-block exception)
+            control_block = await self._client.read_holding_registers(address=2, count=43, **kw)
+            status_block = await self._client.read_holding_registers(address=117, count=21, **kw)
+            freq_block = await self._client.read_holding_registers(address=142, count=2, **kw)
             bits_8_31 = await self._client.read_coils(address=8, count=24, **kw)
             bits_64_111 = await self._client.read_coils(address=64, count=48, **kw)
             bits_128_199 = await self._client.read_coils(address=128, count=72, **kw)
@@ -117,24 +99,27 @@ class AlpicAirHeatpumpCoordinator(DataUpdateCoordinator):
                 raise UpdateFailed("Modbus device returned an error response")
 
         cb = control_block.registers  # index 0 -> Word 2
-        mode = cb[0]                       # Word 2
-        optional_eheater = cb[1]           # Word 3
-        t_water_tank = cb[11]              # Word 13
-        power_limit = cb[41] / 10.0        # Word 43 (x10 -> 0.1kW)
-        on_off_raw = cb[40]                # Word 42
+        mode = cb[0]
+        optional_eheater = cb[1]
+        t_water_tank = cb[11]              # Word 13 setpoint - protocol confirms integer C here (40-80 range, no x10)
+        power_limit = cb[41] / 10.0        # Word 43, explicit x10 -> 0.1kW per protocol
+        on_off_raw = cb[40]
 
         sb = status_block.registers  # index 0 -> Word 117
-        unit_status = sb[0]                # Word 117
-        t_outdoor = self._to_signed16(sb[1])       # Word 118
-        t_water_out_pe = self._to_signed16(sb[8])  # Word 125
-        t_water_in_pe = self._to_signed16(sb[10])  # Word 127
-        t_tank_ctrl = self._to_signed16(sb[11])    # Word 128
-        thermostat_state = sb[15]          # Word 132
+        unit_status = sb[0]
+        # Live temperature sensors (Word 118-137): protocol text says "accuracy 1 C"
+        # but real hardware returns tenths of a degree (e.g. raw 461 = 46.1 C).
+        # Confirmed empirically against known-good reference temperatures, so all
+        # of these are divided by 10 despite the printed spec.
+        t_outdoor = self._to_signed16(sb[1]) / 10.0          # Word 118
+        t_water_out_pe = self._to_signed16(sb[8]) / 10.0     # Word 125
+        t_water_in_pe = self._to_signed16(sb[10]) / 10.0     # Word 127
+        t_tank_ctrl = self._to_signed16(sb[11]) / 10.0       # Word 128
+        thermostat_state = sb[15]                            # Word 132, mode code - not scaled
 
-        setting_frequency = freq_block.registers[0]   # Word 142
-        running_frequency = freq_block.registers[1]   # Word 143
+        setting_frequency = freq_block.registers[0]
+        running_frequency = freq_block.registers[1]
 
-        # Merge coil blocks into one address->bit lookup for convenience
         bits: dict[int, bool] = {}
         for i, val in enumerate(bits_8_31.bits[:24]):
             bits[8 + i] = bool(val)
@@ -183,6 +168,10 @@ class AlpicAirHeatpumpCoordinator(DataUpdateCoordinator):
 
     async def async_write_on_off(self, on: bool) -> None:
         await self.async_write_register(REG_ON_OFF, ON_VALUE if on else OFF_VALUE)
+
+    async def async_toggle_power(self) -> None:
+        current_is_on = bool(self.data.get("is_on")) if self.data else False
+        await self.async_write_on_off(not current_is_on)
 
     async def async_write_tank_setpoint(self, celsius: float) -> None:
         await self.async_write_register(REG_T_WATER_TANK, int(round(celsius)))

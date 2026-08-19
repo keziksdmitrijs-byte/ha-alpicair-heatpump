@@ -27,10 +27,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         AlpicAirHeatpumpErrorTextSensor(coordinator, entry),
         AlpicAirHeatpumpStatusTextSensor(coordinator, entry),
     ]
-    entities += [
-        AlpicAirHeatpumpTemperatureSensor(coordinator, entry, key, name, icon)
-        for key, name, icon in TEMPERATURE_SENSORS
-    ]
+    entities += [AlpicAirHeatpumpTemperatureSensor(coordinator, entry, k, n, i) for k, n, i in TEMPERATURE_SENSORS]
     async_add_entities(entities)
 
 
@@ -53,6 +50,7 @@ class AlpicAirHeatpumpTemperatureSensor(_Base):
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "°C"
+    _attr_suggested_display_precision = 1
 
     def __init__(self, coordinator, entry, data_key: str, name: str, icon: str) -> None:
         super().__init__(coordinator, entry)
@@ -125,8 +123,6 @@ class AlpicAirHeatpumpErrorCountSensor(_Base):
 
 
 class AlpicAirHeatpumpErrorTextSensor(_Base):
-    """Shows the first active error text; full list is in the attributes."""
-
     _attr_icon = "mdi:alert"
 
     def __init__(self, coordinator, entry):
@@ -145,8 +141,6 @@ class AlpicAirHeatpumpErrorTextSensor(_Base):
 
 
 class AlpicAirHeatpumpStatusTextSensor(_Base):
-    """Shows active hardware status flags (compressor, fan, defrost, etc.)."""
-
     _attr_icon = "mdi:information-outline"
 
     def __init__(self, coordinator, entry):

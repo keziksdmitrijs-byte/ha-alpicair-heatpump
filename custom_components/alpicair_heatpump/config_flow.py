@@ -7,15 +7,8 @@ from homeassistant.const import CONF_HOST, CONF_PORT, CONF_NAME
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import (
-    DOMAIN,
-    DEFAULT_PORT,
-    DEFAULT_SLAVE,
-    DEFAULT_NAME,
-    DEFAULT_BAUDRATE,
-    CONF_SLAVE,
-    CONF_CONNECTION_TYPE,
-    CONF_SERIAL_PORT,
-    CONF_BAUDRATE,
+    DOMAIN, DEFAULT_PORT, DEFAULT_SLAVE, DEFAULT_NAME, DEFAULT_BAUDRATE,
+    CONF_SLAVE, CONF_CONNECTION_TYPE, CONF_SERIAL_PORT, CONF_BAUDRATE,
 )
 
 STEP_USER_SCHEMA = vol.Schema(
@@ -32,18 +25,10 @@ STEP_USER_SCHEMA = vol.Schema(
 
 
 class AlpicAirHeatpumpConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for AlpicAir Heatpump.
-
-    The unit's native protocol is Modbus RTU over RS-485 (9600 8N1), but many
-    installations bridge it to Modbus TCP with a serial gateway. Both are
-    supported: pick "tcp" (host/port) or "serial" (serial_port/baudrate).
-    """
-
     VERSION = 1
 
     async def async_step_user(self, user_input: dict | None = None) -> FlowResult:
         errors: dict[str, str] = {}
-
         if user_input is not None:
             conn_type = user_input[CONF_CONNECTION_TYPE]
             if conn_type == "tcp" and not user_input.get(CONF_HOST):

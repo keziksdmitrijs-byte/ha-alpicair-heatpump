@@ -1,30 +1,36 @@
 """Constants for the AlpicAir Heatpump integration.
 
 Register map source: AlpicAir "Modbus Protocol (V1.6) for the Heat Pump
-Water Heater" (RTU, function codes 0x01/0x03/0x0F/0x10). Word addresses are
-holding registers (0x03 read / 0x10 write); Bit addresses are coils/state
-bits, read via 0x01.
+Water Heater" (RTU, function codes 0x01/0x03/0x0F/0x10).
+
+IMPORTANT SCALING NOTE: the protocol document text states "accuracy: 1 C"
+and "Transmission value = Actual value" for most temperature registers
+(Word 118-137 etc.), implying no decimal scaling. In practice, on real
+hardware these registers return the temperature as tenths of a degree
+(x0.1 C) - confirmed empirically (e.g. a register value of 461 corresponds
+to an actual tank temperature of 46.1 C, not 461 C). This is a known
+mismatch between the printed protocol spec and the actual firmware
+behaviour on AlpicAir units. All temperature registers are therefore
+divided by 10 in the coordinator.
 """
 
 DOMAIN = "alpicair_heatpump"
 
-DEFAULT_PORT = 502          # for Modbus TCP<->RTU gateways; ignored for pure serial
+DEFAULT_PORT = 502
 DEFAULT_SLAVE = 1
 DEFAULT_NAME = "AlpicAir Heatpump"
-DEFAULT_BAUDRATE = 9600     # per protocol: 9600 8N1
+DEFAULT_BAUDRATE = 9600
 
 CONF_SLAVE = "slave"
-CONF_CONNECTION_TYPE = "connection_type"  # "tcp" or "serial"
+CONF_CONNECTION_TYPE = "connection_type"
 CONF_SERIAL_PORT = "serial_port"
 CONF_BAUDRATE = "baudrate"
 
-# ---------------------------------------------------------------------------
-# Holding registers (Word 0-166), function code 0x03 read / 0x10 write
-# ---------------------------------------------------------------------------
-REG_MODE = 2                    # 1:Heat 2:HotWater 3:Cool+HotWater 4:Heat+HotWater 5:Cool
-REG_OPTIONAL_EHEATER = 3        # 1:1 set 2:2 sets 3:Off
-REG_DISINFECTION_TEMP = 4       # 40-70 C
-REG_FLOOR_DEBUG_SEGMENTS = 5    # 1-10 sections
+# --- Holding registers (Word 0-166), 0x03 read / 0x10 write ---
+REG_MODE = 2
+REG_OPTIONAL_EHEATER = 3
+REG_DISINFECTION_TEMP = 4
+REG_FLOOR_DEBUG_SEGMENTS = 5
 REG_FLOOR_DEBUG_PERIOD1_TEMP = 6
 REG_SEGMENT_DELTA_T = 7
 REG_SEGMENT_TIME = 8
@@ -32,7 +38,7 @@ REG_WOT_COOL = 9
 REG_WOT_HEAT = 10
 REG_RT_COOL = 11
 REG_RT_HEAT = 12
-REG_T_WATER_TANK = 13           # target hot water tank temperature, 40-80 C
+REG_T_WATER_TANK = 13
 REG_T_EHEATER = 14
 REG_T_OTHER_SWITCH_ON = 15
 REG_T_HP_MAX = 16
@@ -58,14 +64,14 @@ REG_OTHER_THERMAL_LOGIC = 35
 REG_TANK_HEATER = 36
 REG_OPTIONAL_EHEATER_LOGIC = 37
 REG_CURRENT_LIMIT = 38
-REG_THERMOSTAT = 39             # 0:Without 1:Air 2:Air+HotWater
-REG_FORCE_MODE = 40             # 1:Force-cool 2:Force-heat 3:Off
-REG_AIR_REMOVAL = 41            # 1:Air 2:WaterTank 3:Off
-REG_ON_OFF = 42                 # 0xAA:On 0x55:Off
-REG_POWER_LIMIT = 43            # x10 -> 0.1 kW
-REG_ERROR_RESET = 44            # 0:NoClear 1:Clear
+REG_THERMOSTAT = 39
+REG_FORCE_MODE = 40
+REG_AIR_REMOVAL = 41
+REG_ON_OFF = 42
+REG_POWER_LIMIT = 43
+REG_ERROR_RESET = 44
 
-REG_UNIT_STATUS = 117           # 01:Cool 02:Heat 06:HotWater 08:Off (read-only)
+REG_UNIT_STATUS = 117
 REG_T_OUTDOOR = 118
 REG_T_DISCHARGE = 119
 REG_T_DEFROST = 120
@@ -80,24 +86,22 @@ REG_T_TANK_CTRL = 128
 REG_T_REMOTE_ROOM = 129
 REG_T_GAS_PIPE = 130
 REG_T_LIQUID_PIPE = 131
-REG_THERMOSTAT_STATE = 132      # 1:Cool 2:Heat 3:Off (read-only)
+REG_THERMOSTAT_STATE = 132
 REG_T_FLOOR_DEBUG = 133
 REG_DEBUG_TIME = 134
-REG_DISINFECTION_STATE = 135    # 1:Running 2:Done 3:Failed 0:Off
+REG_DISINFECTION_STATE = 135
 REG_ERROR_TIME_FLOOR_DEBUG = 136
 REG_T_WEATHER_DEPEND = 137
-REG_SETTING_FREQUENCY = 142     # Hz
-REG_RUNNING_FREQUENCY = 143     # Hz
+REG_SETTING_FREQUENCY = 142
+REG_RUNNING_FREQUENCY = 143
 
-# ---------------------------------------------------------------------------
-# State / control bits (Bit 0-199), function code 0x01 read / 0x0F write
-# ---------------------------------------------------------------------------
+# --- State / control bits (Bit 0-199), 0x01 read / 0x0F write ---
 BIT_WEEKLY_TIMER = 8
 BIT_CLOCK_TIMER = 9
 BIT_TEMP_TIMER = 10
 BIT_GATE_CTRL = 11
 BIT_SOLAR_HEATER = 16
-BIT_CTRL_STATE = 17              # 0:T-water out 1:T-room
+BIT_CTRL_STATE = 17
 BIT_FAST_HOT_WATER = 18
 BIT_COOL_HOT_WATER_PRIORITY = 19
 BIT_HEAT_HOT_WATER_PRIORITY = 20
@@ -111,7 +115,6 @@ BIT_OTHER_THERMAL = 27
 BIT_WATER_TANK = 29
 BIT_SOLAR_SETTING = 31
 
-# Error / status bits (read-only), a curated subset with human labels
 ERROR_BITS = {
     64: "Ошибка связи: проводной пульт \u2194 внутренний блок",
     65: "Ошибка связи: проводной пульт \u2194 наружный блок",
@@ -169,7 +172,6 @@ ERROR_BITS = {
     191: "Невосстанавливаемая защита внутреннего блока",
 }
 
-# Status bits (read-only, not errors)
 STATUS_BITS = {
     80: "Компрессор",
     81: "Вентилятор наружного блока",
@@ -197,8 +199,6 @@ MODE_LABELS_RU = {
     "heat_hot_water": "Обогрев + ГВС",
     "cool": "Охлаждение",
 }
-MODE_LABELS_RU_REVERSE = {v: k for k, v in MODE_LABELS_RU.items()}
-MODE_TO_REGISTER_VALUE = {v: k for k, v in MODE_MAP.items()}  # not used directly; see select.py
 
 UNIT_STATUS_MAP = {0x01: "Охлаждение", 0x02: "Обогрев", 0x06: "Горячая вода", 0x08: "Выключено"}
 

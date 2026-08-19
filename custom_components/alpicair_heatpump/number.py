@@ -7,16 +7,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, REG_T_WATER_TANK, REG_POWER_LIMIT, MIN_TANK_TEMP, MAX_TANK_TEMP, TANK_TEMP_STEP
+from .const import DOMAIN, REG_POWER_LIMIT, MIN_TANK_TEMP, MAX_TANK_TEMP, TANK_TEMP_STEP
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        [
-            AlpicAirHeatpumpTankSetpointNumber(coordinator, entry),
-            AlpicAirHeatpumpPowerLimitNumber(coordinator, entry),
-        ]
+        [AlpicAirHeatpumpTankSetpointNumber(coordinator, entry), AlpicAirHeatpumpPowerLimitNumber(coordinator, entry)]
     )
 
 
@@ -36,8 +33,6 @@ class _Base(CoordinatorEntity, NumberEntity):
 
 
 class AlpicAirHeatpumpTankSetpointNumber(_Base):
-    """Slider for the hot water tank target temperature (Word 13, 40-80 C)."""
-
     _attr_device_class = NumberDeviceClass.TEMPERATURE
     _attr_native_unit_of_measurement = "°C"
     _attr_native_min_value = MIN_TANK_TEMP
@@ -60,8 +55,6 @@ class AlpicAirHeatpumpTankSetpointNumber(_Base):
 
 
 class AlpicAirHeatpumpPowerLimitNumber(_Base):
-    """Configures the electrical power limit (Word 43, 0-10 kW, x10 -> 0.1kW)."""
-
     _attr_native_unit_of_measurement = "kW"
     _attr_native_min_value = 0.0
     _attr_native_max_value = 10.0

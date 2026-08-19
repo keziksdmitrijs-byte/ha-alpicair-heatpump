@@ -1,4 +1,4 @@
-"""Button platform for AlpicAir Heatpump: On / Off / Reset error."""
+"""Button platform for AlpicAir Heatpump: power toggle + error reset."""
 from __future__ import annotations
 
 from homeassistant.components.button import ButtonEntity
@@ -14,8 +14,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
         [
-            AlpicAirHeatpumpOnButton(coordinator, entry),
-            AlpicAirHeatpumpOffButton(coordinator, entry),
+            AlpicAirHeatpumpPowerToggleButton(coordinator, entry),
             AlpicAirHeatpumpResetErrorButton(coordinator, entry),
         ]
     )
@@ -36,28 +35,16 @@ class _Base(CoordinatorEntity, ButtonEntity):
         )
 
 
-class AlpicAirHeatpumpOnButton(_Base):
-    _attr_icon = "mdi:power-on"
+class AlpicAirHeatpumpPowerToggleButton(_Base):
+    _attr_icon = "mdi:power"
 
     def __init__(self, coordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator, entry)
-        self._attr_unique_id = f"{entry.entry_id}_power_on"
-        self._attr_name = "Включить"
+        self._attr_unique_id = f"{entry.entry_id}_power_toggle"
+        self._attr_name = "Включить/Выключить"
 
     async def async_press(self) -> None:
-        await self.coordinator.async_write_on_off(True)
-
-
-class AlpicAirHeatpumpOffButton(_Base):
-    _attr_icon = "mdi:power-off"
-
-    def __init__(self, coordinator, entry: ConfigEntry) -> None:
-        super().__init__(coordinator, entry)
-        self._attr_unique_id = f"{entry.entry_id}_power_off"
-        self._attr_name = "Выключить"
-
-    async def async_press(self) -> None:
-        await self.coordinator.async_write_on_off(False)
+        await self.coordinator.async_toggle_power()
 
 
 class AlpicAirHeatpumpResetErrorButton(_Base):

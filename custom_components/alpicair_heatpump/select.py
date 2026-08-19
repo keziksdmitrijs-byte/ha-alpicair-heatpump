@@ -20,12 +20,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
 
 class AlpicAirHeatpumpModeSelect(CoordinatorEntity, SelectEntity):
-    """Dropdown for Heat / Hot water / Cool+Hot water / Heat+Hot water / Cool.
-
-    Per the protocol, mode changes only take effect while the unit is off;
-    if the unit is on, the write is ignored by the device itself.
-    """
-
     _attr_icon = "mdi:heat-pump"
     _attr_options = OPTIONS
 
