@@ -1,0 +1,22 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Подключение AlpicAir Heatpump",
+        "description": "Тепловой насос использует Modbus RTU (RS-485, 9600 8N1). Выберите тип подключения: TCP (через Modbus-шлюз) или Serial (прямой RS-485 адаптер).",
+        "data": {
+          "name": "Название устройства",
+          "connection_type": "Тип подключения",
+          "host": "IP-адрес (для TCP)",
+          "port": "Порт (для TCP)",
+          "serial_port": "Serial-порт (для RS-485)",
+          "baudrate": "Скорость (бод)",
+          "slave": "Modbus slave ID"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Это устройство уже настроено"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect AlpicAir Heatpump",
+        "description": "The heat pump uses Modbus RTU (RS-485, 9600 8N1). Choose the connection type: TCP (via a Modbus gateway) or Serial (direct RS-485 adapter).",
+        "data": {
+          "name": "Device name",
+          "connection_type": "Connection type",
+          "host": "IP address (for TCP)",
+          "port": "Port (for TCP)",
+          "serial_port": "Serial port (for RS-485)",
+          "baudrate": "Baud rate",
+          "slave": "Modbus slave ID"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This device is already configured"
+    }
+  }
+}
