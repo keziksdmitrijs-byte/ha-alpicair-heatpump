@@ -139,6 +139,7 @@ class AlpicAirHeatpumpCoordinator(DataUpdateCoordinator):
             "mode": mode,
             "optional_eheater": optional_eheater,
             "t_water_tank_setpoint": t_water_tank,
+	    "t_wot_heat": wot_heat
             "power_limit_kw": power_limit,
             "is_on": on_off_raw == ON_VALUE,
             "unit_status": unit_status,
@@ -175,6 +176,12 @@ class AlpicAirHeatpumpCoordinator(DataUpdateCoordinator):
 
     async def async_write_tank_setpoint(self, celsius: float) -> None:
         await self.async_write_register(REG_T_WATER_TANK, int(round(celsius)))
+
+    async def async_write_wot_heat(self, celsius: float) -> None:
+    """Запись температуры отопления (адрес 10 - WOT_HEAT)."""
+    # Преобразование значения в формат Modbus (целое число)
+    register_value = int(round(value))
+    await self.async_write_register(REG_WOT_HEAT, register_value)
 
     async def async_write_coil_bit(self, bit_address: int, state: bool) -> None:
         kw = {self._device_kwarg: self._slave}

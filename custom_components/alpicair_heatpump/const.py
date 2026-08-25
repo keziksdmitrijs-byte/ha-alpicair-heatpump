@@ -208,3 +208,8 @@ OFF_VALUE = 0x55
 MIN_TANK_TEMP = 40.0
 MAX_TANK_TEMP = 80.0
 TANK_TEMP_STEP = 1.0
+
+# Константы для Water Heating temperature (адрес 10)
+MIN_WOT_HEAT_TEMP = 20.0  # минимальная температура отопления (уточните по документации)
+MAX_WOT_HEAT_TEMP = 60.0  # максимальная температура отопления (уточните по документации)
+WOT_HEAT_TEMP_STEP = 1.0
