@@ -1,0 +1,8 @@
+{
+  "domain": "hvac_weather_curve",
+  "name": "HVAC Weather Curve",
+  "version": "1.1.1",
+  "config_flow": true,
+  "requirements": [],
+  "codeowners": []
+}
